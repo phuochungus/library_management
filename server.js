@@ -1,7 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const generRoute = require("./routes/genreRoute");
-require("dotenv").config();
+
+const genreRoute = require("./routes/genreRoute");
+const userRoute = require("./routes/userRoute");
 
 const app = express();
 
@@ -14,4 +15,5 @@ app.listen(PORT, () => {
   console.log("Server is running on port " + PORT);
 });
 
-app.use("/api", generRoute);
+app.use("/api/genre", genreRoute);
+app.use("/api/user", userRoute);
