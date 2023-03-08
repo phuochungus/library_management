@@ -1,4 +1,3 @@
-const { response } = require("express");
 const mysql = require("mysql2");
 require("dotenv").config();
 
@@ -10,12 +9,12 @@ const pool = mysql
     database: process.env.MYSQL_DATABASE,
   })
   .promise();
-  
+
 const getAll = (req, res, next) => {
   pool
     .query("SELECT * FROM genre")
     .then((response) => {
-      var data = response[0];
+      let data = response[0];
       res.json({ data });
     })
     .catch((err) => {
@@ -29,7 +28,7 @@ const getOne = (req, res, next) => {
   pool
     .query("SELECT * FROM genre WHERE genreID = ?", [req.body.genreID])
     .then((response) => {
-      var data = response[0];
+      let data = response[0];
       res.json({ data });
     })
     .catch((err) => {
@@ -38,7 +37,7 @@ const getOne = (req, res, next) => {
 };
 
 const addOne = (req, res, next) => {
-  var value = [req.body.genreID, req.body.name];
+  let value = [req.body.genreID, req.body.name];
   pool
     .query("INSERT INTO genre VALUES (?)", [value])
     .then((response) => {
@@ -50,8 +49,8 @@ const addOne = (req, res, next) => {
 };
 
 const update = (req, res, next) => {
-  var genreID = req.body.genreID;
-  var genreName = req.body.name;
+  let genreID = req.body.genreID;
+  let genreName = req.body.name;
   pool
     .query("UPDATE genre SET name = ? WHERE genreID = ?", [genreName, genreID])
     .then((response) => {
@@ -67,7 +66,7 @@ const update = (req, res, next) => {
 };
 
 const remove = (req, res, next) => {
-  var genreID = req.body.genreID;
+  let genreID = req.body.genreID;
   pool
     .query("DELETE FROM genre WHERE genreID = ?", [genreID])
     .then((response) => {
