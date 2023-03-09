@@ -52,8 +52,4 @@ const returnBookSlipSchema = new Schema(
 );
 
 const ReturnBookSlip = mongoose.model("return_book_slip", returnBookSlipSchema);
-const SimpleBookElement = mongoose.model(
-  "simple_book_element",
-  SimpleBookElementSchema
-);
-module.exports = { ReturnBookSlip, SimpleBookElement };
+module.exports = { ReturnBookSlip };

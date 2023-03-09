@@ -16,26 +16,27 @@ const pool = mysql
 const createBorrowerSlip = async (req, res, next) => {
   const userID = req.body.userID;
   const bookList = req.body.bookList;
-  let responseMessage;
+  let responseMessage = { message: "", detail: null };
 
-  console.log("origin: " + bookList);
-
-  if (borrowRequestIsValid(userID, bookList, responseMessage)) {
+  if (await borrowRequestIsValid(userID, bookList, responseMessage)) {
     processRequest(res, userID, bookList);
   } else {
+    console.log(responseMessage);
     res.json({
-      message: "User unable to borrow any books!",
-      detail: responseMessage,
+      message: responseMessage,
     });
   }
 };
 
 const borrowRequestIsValid = async (userID, bookList, responseMessage) => {
-  //TODO: can be optimize with concurrency
+  //TODO optimize with async
   if (await isReachBooksLimit(userID, bookList, responseMessage)) {
     return false;
   }
   if (!(await isUserAccountValid(userID, responseMessage))) {
+    return false;
+  }
+  if (!(await isAllBookAvailable(bookList))) {
     return false;
   }
   return true;
@@ -53,24 +54,24 @@ const isReachBooksLimit = async (userID, bookList, responseMessage) => {
     [bookList]
   );
 
-  availableBooks = availableBooks[0].map((element) => element.bookID);
+  availableBooks = availableBooks[0].map((element) => String(element.bookID));
 
   let deepCopiedBookList = JSON.parse(JSON.stringify(bookList));
 
   const difference = deepCopiedBookList.filter(
     (x) => !availableBooks.includes(x)
   );
-  console.log("booklist: " + bookList);
 
   if (difference.length != 0) {
-    responseMessage = "Book unavailable: " + difference;
+    responseMessage.message = "Book unavailable: ";
+    responseMessage.detail = difference;
     return true;
   }
   if (
-    currentNumberOfBookKeepByUser + availableBooks >
+    currentNumberOfBookKeepByUser + availableBooks.length >
     MAX_NUMBER_OF_BOOK_ALLOWED
   ) {
-    responseMessage =
+    responseMessage.message =
       "Reach book limit allowed to lend, return some books to borrow new ones";
     return true;
   }
@@ -88,6 +89,19 @@ const isUserAccountValid = async (userID, responseMessage) => {
     return false;
   }
   return true;
+};
+
+const isAllBookAvailable = async (bookList) => {
+  let [rows] = await pool.query(
+    'SELECT * FROM books WHERE bookID IN (?) AND status = "Available"',
+    [bookList]
+  );
+
+  if (rows.length == bookList.length) {
+    return true;
+  } else {
+    return false;
+  }
 };
 
 const processRequest = async (res, userID, bookList) => {
@@ -109,7 +123,7 @@ const processRequest = async (res, userID, bookList) => {
 const updateBooksStatusToUnavailable = async (bookList) => {
   pool
     .query(
-      'UPDATE books SET status = "Unavailable", borrowDate = ? WHERE bookID IN (?)',
+      'UPDATE books SET status = "Unavailable", borrowedDate = ? WHERE bookID IN (?)',
       [new Date(), bookList]
     )
     .then((response) => {

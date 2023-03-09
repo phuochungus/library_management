@@ -13,6 +13,20 @@ const pool = mysql
   })
   .promise();
 
+const createReturnSlip = async (req, res) => {
+  const userID = req.body.userID;
+  const bookList = req.body.bookList;
+  if (await userHasRightBook(userID, bookList)) {
+    try {
+      await processTransaction(res, userID, bookList);
+    } catch (error) {
+      res.json({ message: "error happend!" });
+    }
+  } else {
+    res.json({ message: "User did not borrow some book!" });
+  }
+};
+
 const userHasRightBook = async (userID, bookList) => {
   try {
     let [rows] = await pool.query(
@@ -30,20 +44,6 @@ const userHasRightBook = async (userID, bookList) => {
   }
 };
 
-const createReturnSlip = async (req, res) => {
-  const userID = req.body.userID;
-  const bookList = req.body.bookList;
-  if (await userHasRightBook(userID, bookList)) {
-    try {
-      processTransaction(res, userID, bookList);
-    } catch (error) {
-      res.json({ message: "error happend!" });
-    }
-  } else {
-    res.json({ message: "some book not borrowed by user!" });
-  }
-};
-
 const processTransaction = async (res, userID, bookList) => {
   let [name] = await pool.query(
     "SELECT name, currentDebt FROM users WHERE userID = ?",
@@ -58,29 +58,34 @@ const processTransaction = async (res, userID, bookList) => {
   let totalFineThisSlip = 0;
 
   let [bookInfo] = await pool.query(
-    "SELECT bookID, borrowDate, maximumLendDay FROM books WHERE bookID IN (?)",
+    "SELECT bookID, borrowedDate, maximumLendDay FROM books WHERE bookID IN (?)",
     [bookList]
   );
 
   for (i in bookInfo) {
     let borrowedDays = caculateNumberOfDay(
-      bookInfo[i]["borrowDate"],
+      bookInfo[i]["borrowedDate"],
       new Date()
     );
-    let passDueDays = caculateNumberOfDay(
-      borrowedDays - bookInfo[i]["maximumLendDay"]
-    );
-    let insertedRow = ReturnBookSlip.SimpleBookElement({
+    let passDueDays = borrowedDays - bookInfo[i]["maximumLendDay"];
+    if (passDueDays < 0) passDueDays = 0;
+    let insertedRow = {
       no: i,
       bookID: bookInfo[i]["bookID"],
-      borrowedDate: bookInfo[i]["borrowDate"],
+      borrowedDate: bookInfo[i]["borrowedDate"],
       borrowedDays,
       fine: passDueDays * FINE_PER_DATE,
-    });
+    };
     returnSlip.bookList.push(insertedRow);
     totalFineThisSlip += insertedRow.fine;
   }
   totalDebt += totalFineThisSlip;
+  let test = {
+    ...returnSlip,
+    totalFineThisSlip,
+    totalDebt,
+  };
+
   returnSlip = ReturnBookSlip.ReturnBookSlip({
     ...returnSlip,
     totalFineThisSlip,
@@ -92,10 +97,10 @@ const processTransaction = async (res, userID, bookList) => {
       res.json({ response });
     })
     .catch((err) => {
-      res.json({ err });
+      console.log(err);
     });
   pool.query(
-    'UPDATE books SET status = "Available", borrowDate = NULL WHERE bookID IN (?)',
+    'UPDATE books SET status = "Available", borrowedDate = NULL WHERE bookID IN (?)',
     [bookList]
   );
   pool.query(
