@@ -14,8 +14,8 @@ const pool = mysql
   .promise();
 
 const login = (req, res, next) => {
-  let username = req.body.username;
-  let password = req.body.password;
+  const username = req.body.username;
+  const password = req.body.password;
   pool
     .query("SELECT * FROM admin WHERE username = ? AND password = ?", [
       username,

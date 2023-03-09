@@ -27,5 +27,5 @@ const fineSchema = new Schema(
   { timestamps: true }
 );
 
-const Fine = mongoose.model("Fine", fineSchema);
+const Fine = mongoose.model("fine_receipt", fineSchema);
 module.exports = { Fine };

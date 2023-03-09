@@ -51,5 +51,5 @@ const returnBookSlipSchema = new Schema(
   { timestamps: true }
 );
 
-const Fine = mongoose.model("Fine", fineSchema);
+const ReturnBookSlip = mongoose.model("return_book_slip", returnBookSlipSchema);
 module.exports = { Fine };

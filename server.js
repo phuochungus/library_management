@@ -10,10 +10,13 @@ const bookRoute = require("./routes/bookRoute");
 const BorrowerSlipRoute = require("./routes/borrowerSlipRoute");
 
 //MongoDB init
+const option = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
 mongoose.connect(
-  "mongodb+srv://m001-student:" +
-    process.env.MONGODB_PASSWORD +
-    "@sandbox.bffmayt.mongodb.net/?retryWrites=true&w=majority"
+  "mongodb+srv://m001-student:XiuzyT0BBES3IyI5@sandbox.bffmayt.mongodb.net/library?retryWrites=true&w=majority",
+  option
 );
 
 const db = mongoose.connection;

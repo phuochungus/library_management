@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const ListElementSchema = new Schema(
   {
-    id: {
+    bookID: {
       type: Number,
       require: true,
     },
@@ -21,11 +21,11 @@ const ListElementSchema = new Schema(
 
 const BorrowerSlipSchema = new Schema(
   {
-    readerID: {
+    userID: {
       type: Number,
       require: true,
     },
-    readerName: {
+    name: {
       type: String,
       require: true,
     },
@@ -34,5 +34,5 @@ const BorrowerSlipSchema = new Schema(
   { timestamps: true }
 );
 
-const BorrowerSlip = mongoose.model("BorrowerSlip", BorrowerSlipSchema);
-module.exports = { BorrowerSlip };
+const BorrowerSlip = mongoose.model("borrower_slip", BorrowerSlipSchema);
+module.exports = BorrowerSlip;

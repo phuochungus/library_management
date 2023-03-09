@@ -2,6 +2,6 @@ const express = require("express");
 const router = express.Router();
 const BorrowerSlipController = require("../controllers/borrowerSlipController");
 
-router.get("/createSlip", BorrowerSlipController.createSlip);
+router.get("/createBorrowerSlip", BorrowerSlipController.createBorrowerSlip);
 
 module.exports = router;
