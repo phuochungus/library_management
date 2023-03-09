@@ -1,3 +1,4 @@
+const { response } = require("express");
 const mysql = require("mysql2");
 
 const BorrowerSlip = require("../models/borrowerSlipSchema");
@@ -29,20 +30,24 @@ const createBorrowerSlip = async (req, res, next) => {
 };
 
 const borrowRequestIsValid = async (userID, bookList, responseMessage) => {
-  //TODO optimize with async
-  if (await isReachBooksLimit(userID, bookList, responseMessage)) {
-    return false;
-  }
-  if (!(await isUserAccountValid(userID, responseMessage))) {
-    return false;
-  }
-  if (!(await isAllBookAvailable(bookList))) {
-    return false;
-  }
-  return true;
+  let flag = false;
+
+  await Promise.all([
+    isNotReachBooksLimit(userID, bookList, responseMessage),
+    isUserAccountStillValid(userID, responseMessage),
+    isAllBookAvailable(bookList, responseMessage),
+  ])
+    .then((response) => {
+      console.log("done");
+      flag = true;
+    })
+    .catch((err) => {
+      return;
+    });
+  return flag;
 };
 
-const isReachBooksLimit = async (userID, bookList, responseMessage) => {
+const isNotReachBooksLimit = async (userID, bookList, responseMessage) => {
   let [rows] = await pool.query(
     "SELECT COUNT(bookID) FROM users_currentbooks WHERE userID = ?",
     [userID]
@@ -65,7 +70,7 @@ const isReachBooksLimit = async (userID, bookList, responseMessage) => {
   if (difference.length != 0) {
     responseMessage.message = "Book unavailable: ";
     responseMessage.detail = difference;
-    return true;
+    throw responseMessage;
   }
   if (
     currentNumberOfBookKeepByUser + availableBooks.length >
@@ -73,12 +78,12 @@ const isReachBooksLimit = async (userID, bookList, responseMessage) => {
   ) {
     responseMessage.message =
       "Reach book limit allowed to lend, return some books to borrow new ones";
-    return true;
+    throw responseMessage;
   }
-  return false;
+  return true;
 };
 
-const isUserAccountValid = async (userID, responseMessage) => {
+const isUserAccountStillValid = async (userID, responseMessage) => {
   let validUntil = await pool.query(
     "SELECT validUntil FROM users WHERE userID = ?",
     [userID]
@@ -86,12 +91,12 @@ const isUserAccountValid = async (userID, responseMessage) => {
   validUntil = validUntil[0][0]["validUntil"];
   if (validUntil < new Date()) {
     responseMessage = "User account has expired!";
-    return false;
+    throw responseMessage;
   }
   return true;
 };
 
-const isAllBookAvailable = async (bookList) => {
+const isAllBookAvailable = async (bookList, responseMessage) => {
   let [rows] = await pool.query(
     'SELECT * FROM books WHERE bookID IN (?) AND status = "Available"',
     [bookList]
@@ -100,12 +105,12 @@ const isAllBookAvailable = async (bookList) => {
   if (rows.length == bookList.length) {
     return true;
   } else {
-    return false;
+    responseMessage.message = "Some books are not available at the moment!";
+    throw responseMessage;
   }
 };
 
 const processRequest = async (res, userID, bookList) => {
-  console.log(bookList);
   await updateBooksStatusToUnavailable(bookList);
 
   let insertRows = makeInsertRows(userID, bookList);
