@@ -44,7 +44,7 @@ const addOne = (req, res, next) => {
       res.json({ message: "inserted successfully" });
     })
     .catch((err) => {
-      res.json({ message: "inserted fail" });
+      res.status(300).send({ message: "inserted fail" });
     });
 };
 

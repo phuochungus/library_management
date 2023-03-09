@@ -1,4 +1,3 @@
-const { response } = require("express");
 const mysql = require("mysql2");
 
 const BorrowerSlip = require("../models/borrowerSlipSchema");
@@ -109,9 +108,10 @@ const processRequest = async (res, userID, bookList) => {
 
 const updateBooksStatusToUnavailable = async (bookList) => {
   pool
-    .query('UPDATE books SET status = "Unavailable" WHERE bookID IN (?)', [
-      bookList,
-    ])
+    .query(
+      'UPDATE books SET status = "Unavailable", borrowDate = ? WHERE bookID IN (?)',
+      [new Date(), bookList]
+    )
     .then((response) => {
       console.log(response);
     })

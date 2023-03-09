@@ -7,7 +7,8 @@ const genreRoute = require("./routes/genreRoute");
 const userRoute = require("./routes/userRoute");
 const adminRoute = require("./routes/adminRoute");
 const bookRoute = require("./routes/bookRoute");
-const BorrowerSlipRoute = require("./routes/borrowerSlipRoute");
+const borrowerSlipRoute = require("./routes/borrowerSlipRoute");
+const returnBookSlipRoute = require("./routes/returnBookSlipRoute");
 
 //MongoDB init
 const option = {
@@ -39,6 +40,7 @@ app.use(bodyParser.json());
 const PORT = process.env.PORT || 3000;
 
 app.use(morgan("dev"));
+
 app.listen(PORT, () => {
   console.log("Server is running on port " + PORT);
 });
@@ -47,4 +49,5 @@ app.use("/api/genre", genreRoute);
 app.use("/api/user", userRoute);
 app.use("/api", adminRoute);
 app.use("/api/book", bookRoute);
-app.use("/api/borrow/", BorrowerSlipRoute);
+app.use("/api/borrow/", borrowerSlipRoute);
+app.use("/api/return", returnBookSlipRoute);

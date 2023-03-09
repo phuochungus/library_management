@@ -1,8 +1,12 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const SimpleBookElement = new Schema(
+const SimpleBookElementSchema = new Schema(
   {
+    no: {
+      type: Number,
+      require: true,
+    },
     bookID: {
       type: Number,
       require: true,
@@ -26,19 +30,15 @@ const SimpleBookElement = new Schema(
 
 const returnBookSlipSchema = new Schema(
   {
-    readerName: {
+    name: {
       type: String,
       require: true,
     },
-    readerID: {
+    userID: {
       type: String,
       require: true,
     },
-    date: {
-      type: Date,
-      require: true,
-    },
-    totalFine: {
+    totalFineThisSlip: {
       type: Number,
       default: 0,
     },
@@ -46,10 +46,14 @@ const returnBookSlipSchema = new Schema(
       type: Number,
       default: 0,
     },
-    bookList: [SimpleBookElement],
+    bookList: [SimpleBookElementSchema],
   },
   { timestamps: true }
 );
 
 const ReturnBookSlip = mongoose.model("return_book_slip", returnBookSlipSchema);
-module.exports = { Fine };
+const SimpleBookElement = mongoose.model(
+  "simple_book_element",
+  SimpleBookElementSchema
+);
+module.exports = { ReturnBookSlip, SimpleBookElement };
