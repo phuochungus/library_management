@@ -7,6 +7,14 @@ const ListElementSchema = new Schema(
       type: Number,
       require: true,
     },
+    genreName: {
+      type: String,
+      require: true,
+    },
+    genreID: {
+      type: String,
+      require: true,
+    },
     name: {
       type: String,
       require: true,
@@ -25,6 +33,7 @@ const BorrowerSlipSchema = new Schema(
       type: Number,
       require: true,
     },
+
     name: {
       type: String,
       require: true,

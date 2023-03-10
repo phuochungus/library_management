@@ -152,7 +152,7 @@ const storeBorrowerSlipToDB = async (res, userID, bookList) => {
   userInfo = userInfo[0][0];
 
   let bookInfo = await pool.query(
-    "SELECT bookID, name, author FROM books WHERE bookID IN (?)",
+    "SELECT b.bookID, b.name, b.author, g.name as genreName, g.genreID as genreID FROM books b, genre g WHERE bookID IN (?) AND b.genreID = g.genreID",
     [bookList]
   );
   bookInfo = bookInfo[0];
@@ -168,4 +168,34 @@ const storeBorrowerSlipToDB = async (res, userID, bookList) => {
     });
 };
 
-module.exports = { createBorrowerSlip };
+const getAll = (req, res, next) => {
+  BorrowerSlip.find()
+    .then((response) => {
+      res.json({ response });
+    })
+    .catch((err) => {
+      res.json({ err });
+    });
+};
+
+const getAllFromUser = (req, res, next) => {
+  BorrowerSlip.find({ userID: req.body.userID })
+    .then((response) => {
+      res.json({ response });
+    })
+    .catch((err) => {
+      res.json({ err });
+    });
+};
+
+const getOne = (req, res, next) => {
+  BorrowerSlip.find({ _id: req.body.borrowerSlipID })
+    .then((response) => {
+      res.json({ response });
+    })
+    .catch((err) => {
+      res.json({ err });
+    });
+};
+
+module.exports = { createBorrowerSlip, getAll, getAllFromUser, getOne };

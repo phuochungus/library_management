@@ -86,7 +86,7 @@ const processTransaction = async (res, userID, bookList) => {
     totalDebt,
   };
 
-  returnSlip = ReturnBookSlip.ReturnBookSlip({
+  returnSlip = ReturnBookSlip({
     ...returnSlip,
     totalFineThisSlip,
     totalDebt,
@@ -115,4 +115,34 @@ const caculateNumberOfDay = (date1, date2) => {
   return diffDays;
 };
 
-module.exports = { createReturnSlip };
+const getAll = (req, res, next) => {
+  ReturnBookSlip.find()
+    .then((response) => {
+      res.json({ response });
+    })
+    .catch((err) => {
+      res.json({ err });
+    });
+};
+
+const getAllFromUser = (req, res, next) => {
+  ReturnBookSlip.find({ userID: req.body.userID })
+    .then((response) => {
+      res.json({ response });
+    })
+    .catch((err) => {
+      res.json({ err });
+    });
+};
+
+const getOne = (req, res, next) => {
+  ReturnBookSlip.find({ _id: req.body.returnBookSlipID })
+    .then((response) => {
+      res.json({ response });
+    })
+    .catch((err) => {
+      res.json({ err });
+    });
+};
+
+module.exports = { createReturnSlip, getAll, getAllFromUser, getOne };

@@ -9,6 +9,8 @@ const adminRoute = require("./routes/adminRoute");
 const bookRoute = require("./routes/bookRoute");
 const borrowerSlipRoute = require("./routes/borrowerSlipRoute");
 const returnBookSlipRoute = require("./routes/returnBookSlipRoute");
+const fineReceiptRoute = require("./routes/fineReceiptRoute");
+const reportRoute = require("./routes/reportRoute");
 
 //MongoDB init
 const option = {
@@ -51,3 +53,5 @@ app.use("/api", adminRoute);
 app.use("/api/book", bookRoute);
 app.use("/api/borrow/", borrowerSlipRoute);
 app.use("/api/return", returnBookSlipRoute);
+app.use("/api/fineReceipt", fineReceiptRoute);
+app.use("/api/report", reportRoute);

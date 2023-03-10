@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const fineSchema = new Schema(
   {
-    total: {
+    totalDebt: {
       type: Number,
       require: true,
     },
@@ -15,11 +15,11 @@ const fineSchema = new Schema(
       type: Number,
       require: true,
     },
-    readerID: {
+    userID: {
       type: Number,
       require: true,
     },
-    readerName: {
+    name: {
       type: String,
       require: true,
     },
@@ -28,4 +28,4 @@ const fineSchema = new Schema(
 );
 
 const Fine = mongoose.model("fine_receipt", fineSchema);
-module.exports = { Fine };
+module.exports = Fine;
