@@ -12,8 +12,6 @@ const returnBookSlipRoute = require("./routes/returnBookSlipRoute");
 const fineReceiptRoute = require("./routes/fineReceiptRoute");
 const reportRoute = require("./routes/reportRoute");
 
-require("dotenv").config();
-
 //MongoDB init
 const option = {
   useNewUrlParser: true,

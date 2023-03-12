@@ -1,17 +1,8 @@
-const mysql = require("mysql2");
+const pool = require("../dbHandler");
 
 const ReturnBookSlip = require("../models/returnBookSlipSchema");
 
 const FINE_PER_DATE = 1000;
-
-const pool = mysql
-  .createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-  })
-  .promise();
 
 const createReturnSlip = async (req, res) => {
   const userID = req.body.userID;
@@ -125,7 +116,7 @@ const getAll = (req, res, next) => {
     });
 };
 
-const getAllFromUser = (req, res, next) => {
+const getAllFromUser = (req, res) => {
   ReturnBookSlip.find({ userID: req.body.userID })
     .then((response) => {
       res.json({ response });
@@ -135,7 +126,7 @@ const getAllFromUser = (req, res, next) => {
     });
 };
 
-const getOne = (req, res, next) => {
+const getOne = (req, res) => {
   ReturnBookSlip.find({ _id: req.body.returnBookSlipID })
     .then((response) => {
       res.json({ response });

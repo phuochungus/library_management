@@ -1,20 +1,9 @@
-const { response } = require("express");
-const mysql = require("mysql2");
-
 const BorrowerSlip = require("../models/borrowerSlipSchema");
+const pool = require("../dbHandler");
 
 const MAX_NUMBER_OF_BOOK_ALLOWED = 5;
 
-const pool = mysql
-  .createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-  })
-  .promise();
-
-const createBorrowerSlip = async (req, res, next) => {
+const createBorrowerSlip = async (req, res) => {
   const userID = req.body.userID;
   const bookList = req.body.bookList;
   let responseMessage = { message: "", detail: null };
@@ -168,7 +157,7 @@ const storeBorrowerSlipToDB = async (res, userID, bookList) => {
     });
 };
 
-const getAll = (req, res, next) => {
+const getAll = (req, res) => {
   BorrowerSlip.find()
     .then((response) => {
       res.json({ response });
@@ -178,7 +167,7 @@ const getAll = (req, res, next) => {
     });
 };
 
-const getAllFromUser = (req, res, next) => {
+const getAllFromUser = (req, res) => {
   BorrowerSlip.find({ userID: req.body.userID })
     .then((response) => {
       res.json({ response });
@@ -188,7 +177,7 @@ const getAllFromUser = (req, res, next) => {
     });
 };
 
-const getOne = (req, res, next) => {
+const getOne = (req, res) => {
   BorrowerSlip.find({ _id: req.body.borrowerSlipID })
     .then((response) => {
       res.json({ response });

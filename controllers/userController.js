@@ -1,18 +1,6 @@
-const mysql = require("mysql2");
-require("dotenv").config();
+const pool = require("../dbHandler");
 
-var RULE_MONTH = 6;
-
-const pool = mysql
-  .createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-  })
-  .promise();
-
-const getAll = (req, res, next) => {
+const getAll = (req, res) => {
   pool
     .query("SELECT * FROM users")
     .then((response) => {
@@ -24,7 +12,7 @@ const getAll = (req, res, next) => {
     });
 };
 
-const getOne = (req, res, next) => {
+const getOne = (req, res) => {
   pool
     .query("SELECT * FROM users WHERE userID = ?", [req.body.userID])
     .then((response) => {
@@ -36,7 +24,7 @@ const getOne = (req, res, next) => {
     });
 };
 
-const addOne = (req, res, next) => {
+const addOne = (req, res) => {
   let currentDate = new Date();
   currentDate.setMonth(currentDate.getMonth() + RULE_MONTH).toString();
 
@@ -62,7 +50,7 @@ const addOne = (req, res, next) => {
     });
 };
 
-const update = async (req, res, next) => {
+const update = async (req, res) => {
   let userID = req.body.userID;
   let [result] = await pool.query("SELECT * FROM users WHERE userID = ?", [
     userID,
@@ -97,7 +85,7 @@ const update = async (req, res, next) => {
     });
 };
 
-const remove = (req, res, next) => {
+const remove = (req, res) => {
   let userID = req.body.userID;
   pool
     .query("DELETE FROM users WHERE userID = ?", [userID])

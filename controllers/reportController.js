@@ -1,18 +1,8 @@
-const { response } = require("express");
-const mysql = require("mysql2");
-const { count } = require("../models/borrowerSlipSchema");
 const BorrowerSlip = require("../models/borrowerSlipSchema");
 
-const pool = mysql
-  .createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-  })
-  .promise();
+const pool = require("../dbHandler");
 
-const generateBorrowReport = async (req, res, next) => {
+const generateBorrowReport = async (req, res) => {
   const selectedMonth = req.body.selectedMonth;
   if (1 <= selectedMonth && selectedMonth <= 12) {
     let startDate = new Date();
@@ -65,7 +55,7 @@ const generateReportIn = async (res, startDate, endDate, selectedMonth) => {
   res.json(finalReport);
 };
 
-const generaterLateReturnReport = async (req, res, next) => {
+const generaterLateReturnReport = async (req, res) => {
   await pool
     .query(
       "SELECT " +

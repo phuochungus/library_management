@@ -1,16 +1,7 @@
 const mysql = require("mysql2");
-require("dotenv").config();
+const pool = require("../dbHandler");
 
-const pool = mysql
-  .createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-  })
-  .promise();
-
-const getAll = (req, res, next) => {
+const getAll = (req, res) => {
   console.log(req.user);
   pool
     .query("SELECT * FROM books")
@@ -25,7 +16,7 @@ const getAll = (req, res, next) => {
     });
 };
 
-const getOne = (req, res, next) => {
+const getOne = (req, res) => {
   pool
     .query("SELECT * FROM books WHERE bookID = ?", [req.body.bookID])
     .then((response) => {
@@ -37,7 +28,7 @@ const getOne = (req, res, next) => {
     });
 };
 
-const addOne = (req, res, next) => {
+const addOne = (req, res) => {
   let book = {
     name: req.body.name,
     genreID: req.body.genreID,
@@ -64,7 +55,7 @@ const addOne = (req, res, next) => {
     });
 };
 
-const update = async (req, res, next) => {
+const update = async (req, res) => {
   let bookID = req.body.bookID;
   let [result] = await pool.query("SELECT * FROM books WHERE bookID = ?", [
     bookID,
@@ -108,7 +99,7 @@ const update = async (req, res, next) => {
     });
 };
 
-const remove = (req, res, next) => {
+const remove = (req, res) => {
   let bookID = req.body.bookID;
   pool
     .query("DELETE FROM books WHERE bookID = ?", [bookID])
