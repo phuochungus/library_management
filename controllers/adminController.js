@@ -1,37 +1,20 @@
-const mysql = require("mysql2");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const pool = require("../dbHandler");
 
-require("dotenv").config();
-
-const pool = mysql
-  .createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-  })
-  .promise();
-
-const login = (req, res, next) => {
+const login = (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   pool
-    .query("SELECT * FROM admin WHERE username = ? AND password = ?", [
-      username,
-      password,
-    ])
+    .query(
+      'SELECT * FROM admin WHERE username = ? AND password = ? AND isDeleted = "NO"',
+      [username, password]
+    )
     .then((response) => {
-      let user = response[0];
-      console.log(user);
-      if (response[0]) {
-        let token = jwt.sign(
-          { name: user.username },
-          process.env.SECRET_VALUE,
-          {
-            expiresIn: "1h",
-          }
-        );
+      if (response[0].length != 0) {
+        let token = jwt.sign({ name: username }, process.env.SECRET_VALUE, {
+          expiresIn: "1h",
+        });
         res.json({ message: "login successfully!", token });
       } else {
         res.json({ message: "account not found!" });
@@ -42,36 +25,39 @@ const login = (req, res, next) => {
     });
 };
 
-const register = (req, res, next) => {
-  bcrypt.hash(req.body.password, 10, (err, hashedPass) => {
-    if (err) {
-      res.json({
-        error: err,
-      });
-    }
-    let user = {
-      name: req.body.name,
-      username: req.body.username,
-      password: hashedPass,
-      birth: req.body.birth,
-      address: req.body.address,
-      email: req.body.email,
-    };
-    console.log(Object.values(user));
-    pool
-      .query(
-        "INSERT INTO admin(name, username, password, birth, address, email) VALUES ?",
-        [[Object.values(user)]]
-      )
-      .then((response) => {
+const register = (req, res) => {
+  bcrypt.hash(
+    req.body.password,
+    process.env.SECRET_VALUE,
+    (err, hashedPassword) => {
+      if (err) {
         res.json({
-          message: "admin added successfully!",
+          error: err,
         });
-      })
-      .catch((err) => {
-        res.json({ message: "err: " + err });
-      });
-  });
+      }
+      let user = {
+        name: req.body.name,
+        username: req.body.username,
+        password: hashedPassword,
+        birth: req.body.birth,
+        address: req.body.address,
+        email: req.body.email,
+      };
+      pool
+        .query(
+          "INSERT INTO admin(name, username, password, birth, address, email) VALUES ?",
+          [[Object.values(user)]]
+        )
+        .then((response) => {
+          res.json({
+            message: "admin added successfully!",
+          });
+        })
+        .catch((err) => {
+          res.json({ message: "err: " + err });
+        });
+    }
+  );
 };
 
 const update = async (req, res, next) => {
@@ -108,16 +94,18 @@ const update = async (req, res, next) => {
     });
 };
 
-const remove = (req, res, next) => {
+const remove = (req, res) => {
   pool
-    .query("DELETE FROM admin WHERE username = ?", [req.body.username])
+    .query('UPDATE FROM admin SET isDeleted = "YES" WHERE username = ?', [
+      req.body.username,
+    ])
     .then((response) => {
       if (response[0].affectedRows == 0) {
         res.json({ message: "delete successful!" });
       }
     })
     .catch((err) => {
-      console.log({ message: "error: " + err });
+      res.json({ message: "deleted fail!" });
     });
 };
 

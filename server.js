@@ -12,11 +12,14 @@ const returnBookSlipRoute = require("./routes/returnBookSlipRoute");
 const fineReceiptRoute = require("./routes/fineReceiptRoute");
 const reportRoute = require("./routes/reportRoute");
 
+require("dotenv").config();
+
 //MongoDB init
 const option = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 };
+
 mongoose.connect(
   "mongodb+srv://m001-student:XiuzyT0BBES3IyI5@sandbox.bffmayt.mongodb.net/library?retryWrites=true&w=majority",
   option

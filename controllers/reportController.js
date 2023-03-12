@@ -3,6 +3,15 @@ const mysql = require("mysql2");
 const { count } = require("../models/borrowerSlipSchema");
 const BorrowerSlip = require("../models/borrowerSlipSchema");
 
+const pool = mysql
+  .createPool({
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQL_DATABASE,
+  })
+  .promise();
+
 const generateBorrowReport = async (req, res, next) => {
   const selectedMonth = req.body.selectedMonth;
   if (1 <= selectedMonth && selectedMonth <= 12) {
@@ -56,4 +65,26 @@ const generateReportIn = async (res, startDate, endDate, selectedMonth) => {
   res.json(finalReport);
 };
 
-module.exports = { generateBorrowReport };
+const generaterLateReturnReport = async (req, res, next) => {
+  await pool
+    .query(
+      "SELECT " +
+        "name, borrowedDate, DATEDIFF(CURRENT_TIMESTAMP(), borrowedDate) as passDue " +
+        "FROM books WHERE DATEDIFF(CURRENT_TIMESTAMP(), borrowedDate) > maximumLendDay"
+    )
+    .then((response) => {
+      let data = response[0];
+      res.json({ date: new Date(), data });
+    })
+    .catch((err) => {
+      res.json({ message: "some error happend" });
+    });
+};
+const calculateDayPassDue = (borrowedDate, maximumLendDays) => {
+  let passDueDays = 0;
+  let numberOfDaysUntilNow = new Date() - borrowedDate;
+  passDueDays = max(passDueDays, numberOfDaysUntilNow - max);
+  return passDueDays;
+};
+
+module.exports = { generateBorrowReport, generaterLateReturnReport };

@@ -11,6 +11,7 @@ const pool = mysql
   .promise();
 
 const getAll = (req, res, next) => {
+  console.log(req.user);
   pool
     .query("SELECT * FROM books")
     .then((response) => {
