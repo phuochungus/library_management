@@ -1,4 +1,4 @@
-const pool = require("../dbHandler");
+const pool = require("../utils/dbHandler");
 
 const getAll = (req, res, next) => {
   pool

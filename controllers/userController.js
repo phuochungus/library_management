@@ -1,4 +1,4 @@
-const pool = require("../dbHandler");
+const pool = require("../utils/dbHandler");
 
 const getAll = (req, res) => {
   pool
@@ -25,21 +25,17 @@ const getOne = (req, res) => {
 };
 
 const addOne = (req, res) => {
-  let currentDate = new Date();
-  currentDate.setMonth(currentDate.getMonth() + RULE_MONTH).toString();
-
   let user = [
     req.body.name,
     req.body.type,
     req.body.birth,
     req.body.address,
     req.body.email,
-    currentDate,
   ];
 
   pool
     .query(
-      "INSERT INTO users(name,type,birth,address,email,validUntil) VALUES (?)",
+      "INSERT INTO users (name, type, birth, address, email) VALUES (?)",
       [user]
     )
     .then((response) => {
@@ -85,16 +81,37 @@ const update = async (req, res) => {
     });
 };
 
-const remove = (req, res) => {
-  let userID = req.body.userID;
-  pool
-    .query("DELETE FROM users WHERE userID = ?", [userID])
-    .then((response) => {
-      res.json({ message: "deleted successfully" + response });
-    })
-    .catch((err) => {
-      res.json({ message: "deleted fail" });
-    });
+const remove = async (req, res) => {
+  const userID = req.body.userID;
+  if (await userHaveReturnAllBook(userID)) {
+    pool
+      .query('UPDATE users SET isDeleted = "YES" WHERE userID = ?', [userID])
+      .then((response) => {
+        res.json({ message: "deleted successfully" });
+      })
+      .catch((err) => {
+        res.json({ message: "deleted fail" });
+      });
+  } else {
+    res.json({ message: "deleted fail! return all book" });
+  }
+};
+
+const userHaveReturnAllBook = async (userID) => {
+  try {
+    let response = await pool.query(
+      "SELECT numberOfCurrentBookBorrowedByUser(?) as numberOfBook",
+      [userID]
+    );
+
+    if (response[0][0].numberOfBook == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
 };
 
 module.exports = { getAll, getOne, addOne, update, remove };

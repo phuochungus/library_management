@@ -1,6 +1,6 @@
 const BorrowerSlip = require("../models/borrowerSlipSchema");
 
-const pool = require("../dbHandler");
+const pool = require("../utils/dbHandler");
 
 const generateBorrowReport = async (req, res) => {
   const selectedMonth = req.body.selectedMonth;

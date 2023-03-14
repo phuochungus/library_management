@@ -1,4 +1,4 @@
-const pool = require("../dbHandler");
+const pool = require("../utils/dbHandler");
 
 const ReturnBookSlip = require("../models/returnBookSlipSchema");
 

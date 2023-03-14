@@ -1,5 +1,6 @@
 const BorrowerSlip = require("../models/borrowerSlipSchema");
-const pool = require("../dbHandler");
+const pool = require("../utils/dbHandler");
+const LibraryRules = require("../utils/libraryRules");
 
 const MAX_NUMBER_OF_BOOK_ALLOWED = 5;
 
@@ -21,18 +22,30 @@ const createBorrowerSlip = async (req, res) => {
 const borrowRequestIsValid = async (userID, bookList, responseMessage) => {
   let flag = false;
 
-  await Promise.all([
-    isNotReachBooksLimit(userID, bookList, responseMessage),
-    isUserAccountStillValid(userID, responseMessage),
-    isAllBookAvailable(bookList, responseMessage),
-  ])
-    .then((response) => {
-      console.log("done");
-      flag = true;
-    })
-    .catch((err) => {
-      return;
-    });
+  let userInfo = await pool.query(
+    'SELECT * FROM users WHERE userID = ? AND isDeleted = "NO"',
+    [userID]
+  );
+
+  userInfo = userInfo[0][0];
+  if (userInfo) {
+    await Promise.all([
+      isNotReachBooksLimit(userID, bookList, responseMessage),
+      isUserAccountValid(userInfo, responseMessage),
+      isFollowingBookAvailable(bookList, responseMessage),
+    ])
+      .then((response) => {
+        console.log(response);
+        flag = true;
+      })
+      .catch((err) => {
+        console.log(err);
+        flag = false;
+      });
+  } else {
+    responseMessage.message = "Account not found or deleted!";
+    return false;
+  }
   return flag;
 };
 
@@ -72,20 +85,50 @@ const isNotReachBooksLimit = async (userID, bookList, responseMessage) => {
   return true;
 };
 
-const isUserAccountStillValid = async (userID, responseMessage) => {
-  let validUntil = await pool.query(
-    "SELECT validUntil FROM users WHERE userID = ?",
-    [userID]
-  );
-  validUntil = validUntil[0][0]["validUntil"];
-  if (validUntil < new Date()) {
-    responseMessage = "User account has expired!";
+const isUserAccountValid = async (userInfo, responseMessage) => {
+  if (
+    (await isUserAccountStilValidNow(userInfo.createdAt)) ||
+    (await isUserAgeValid(userInfo.birth))
+  ) {
+    return true;
+  } else {
+    responseMessage.message = "User account invalid!";
     throw responseMessage;
   }
-  return true;
 };
 
-const isAllBookAvailable = async (bookList, responseMessage) => {
+const isUserAccountStilValidNow = async (createdDay) => {
+  // let createdDay = await pool.query(
+  //   'SELECT createdAt FROM users WHERE userID = ? AND isDeleted = "NO"',
+  //   [userID]
+  // );
+  // createdDay = createdDay[0][0]["createdAt"];
+  let rules = await LibraryRules.getLibraryRules();
+  if (
+    createdDay.addDays(rules.VALID_PERIOD_BY_DAY_OF_USER_ACCOUNT) >= new Date()
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+Date.prototype.addDays = function (days) {
+  var date = new Date(this.valueOf());
+  date.setDate(date.getDate() + days);
+  return date;
+};
+
+const isUserAgeValid = async (birth) => {
+  let age = new Date().getFullYear - birth.getFullYear;
+  let rules = await LibraryRules.getLibraryRules();
+  if (rules.MINIMUM_AGE <= age && age <= rules.MAXIMUM_AGE) {
+    return true;
+  }
+  return false;
+};
+
+const isFollowingBookAvailable = async (bookList, responseMessage) => {
   let [rows] = await pool.query(
     'SELECT * FROM books WHERE bookID IN (?) AND status = "Available"',
     [bookList]
@@ -187,4 +230,10 @@ const getOne = (req, res) => {
     });
 };
 
-module.exports = { createBorrowerSlip, getAll, getAllFromUser, getOne };
+module.exports = {
+  createBorrowerSlip,
+  getAll,
+  getAllFromUser,
+  getOne,
+  isUserAgeValid,
+};

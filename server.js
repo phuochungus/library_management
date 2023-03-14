@@ -11,6 +11,8 @@ const borrowerSlipRoute = require("./routes/borrowerSlipRoute");
 const returnBookSlipRoute = require("./routes/returnBookSlipRoute");
 const fineReceiptRoute = require("./routes/fineReceiptRoute");
 const reportRoute = require("./routes/reportRoute");
+const authentication = require("./middleware/authenticate");
+const LibraryRules = require("./utils/libraryRules");
 
 //MongoDB init
 const option = {
@@ -19,7 +21,9 @@ const option = {
 };
 
 mongoose.connect(
-  "mongodb+srv://m001-student:XiuzyT0BBES3IyI5@sandbox.bffmayt.mongodb.net/library?retryWrites=true&w=majority",
+  "mongodb+srv://m001-student:" +
+    process.env.MONGODB_PASSWORD +
+    "@sandbox.bffmayt.mongodb.net/library?retryWrites=true&w=majority",
   option
 );
 
@@ -47,6 +51,8 @@ app.use(morgan("dev"));
 app.listen(PORT, () => {
   console.log("Server is running on port " + PORT);
 });
+
+LibraryRules.getLibraryRules();
 
 app.use("/api/genre", genreRoute);
 app.use("/api/user", userRoute);
