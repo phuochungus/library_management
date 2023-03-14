@@ -2,32 +2,32 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../utils/dbHandler");
 
-const login = async (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  let passwordInDB = await getPasswordFromDB(username);
-  bcrypt.compare(password, passwordInDB, function (err, result) {
-    if (err) {
-      res.json({ message: "login fail!" });
-    }
-    if (result == true) {
-      let token = jwt.sign({ name: username }, process.env.ACCESS_TOKEN, {
-        expiresIn: "1h",
-      });
-      res.json({ message: "login successfully!", token });
-    } else {
-      res.json({ message: "wrong password" });
-    }
-  });
-};
+// const login = async (req, res) => {
+//   const username = req.body.username;
+//   const password = req.body.password;
+//   let passwordInDB = await getPasswordFromDB(username);
+//   bcrypt.compare(password, passwordInDB, function (err, result) {
+//     if (err) {
+//       res.json({ message: "login fail!" });
+//     }
+//     if (result == true) {
+//       let token = jwt.sign({ name: username }, process.env.ACCESS_TOKEN, {
+//         expiresIn: "1h",
+//       });
+//       res.json({ message: "login successfully!", token });
+//     } else {
+//       res.json({ message: "wrong password" });
+//     }
+//   });
+// };
 
-const getPasswordFromDB = async (username) => {
-  let response = await pool.query(
-    "SELECT password FROM admin WHERE username = ?",
-    [username]
-  );
-  return response[0][0].password;
-};
+// const getPasswordFromDB = async (username) => {
+//   let response = await pool.query(
+//     "SELECT password FROM admin WHERE username = ?",
+//     [username]
+//   );
+//   return response[0][0].password;
+// };
 
 const register = (req, res) => {
   bcrypt.hash(
@@ -100,9 +100,10 @@ const update = async (req, res, next) => {
 
 const remove = (req, res) => {
   pool
-    .query('UPDATE admin SET isDeleted = "YES", updatedAt = CURRENT_TIMESTAMP() WHERE username = ?', [
-      req.body.username,
-    ])
+    .query(
+      'UPDATE admin SET isDeleted = "YES", updatedAt = CURRENT_TIMESTAMP() WHERE username = ?',
+      [req.body.username]
+    )
     .then((response) => {
       if (response[0].affectedRows != 0) {
         res.json({ message: "delete successful!" });
@@ -115,4 +116,4 @@ const remove = (req, res) => {
     });
 };
 
-module.exports = { login, register, update, remove };
+module.exports = { register, update, remove };

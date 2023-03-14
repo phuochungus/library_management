@@ -1,4 +1,5 @@
 const pool = require("../utils/dbHandler");
+const isUserAgeValid = require("./borrowerSlipController").isUserAgeValid;
 
 const getAll = (req, res) => {
   pool
@@ -24,7 +25,7 @@ const getOne = (req, res) => {
     });
 };
 
-const addOne = (req, res) => {
+const addOne = async (req, res) => {
   let user = [
     req.body.name,
     req.body.type,
@@ -33,17 +34,21 @@ const addOne = (req, res) => {
     req.body.email,
   ];
 
-  pool
-    .query(
-      "INSERT INTO users (name, type, birth, address, email) VALUES (?)",
-      [user]
-    )
-    .then((response) => {
-      res.json({ message: "inserted successfully" });
-    })
-    .catch((err) => {
-      res.json({ message: "inserted fail" + err });
-    });
+  if (await isUserAgeValid(req.body.birth)) {
+    pool
+      .query(
+        "INSERT INTO users (name, type, birth, address, email) VALUES (?)",
+        [user]
+      )
+      .then((response) => {
+        res.json({ message: "inserted successfully" });
+      })
+      .catch((err) => {
+        res.json({ message: "inserted fail" + err });
+      });
+  } else {
+    res.json({ message: "User's age not supported!" });
+  }
 };
 
 const update = async (req, res) => {
@@ -61,24 +66,28 @@ const update = async (req, res) => {
     updatedAt: new Date(),
     userID: user.userID,
   };
-  userInfo = Object.values(user);
-  pool
-    .query(
-      "UPDATE users" +
-        " SET name = ?, type = ?, birth = ?, address = ?, email = ?, updatedAt = ?" +
-        " where userID = ?",
-      userInfo
-    )
-    .then((response) => {
-      if (response[0].affectedRows == 0) {
-        res.json({ message: "item not found" });
-      } else {
-        res.json({ message: "updated successfully" });
-      }
-    })
-    .catch((err) => {
-      res.json({ message: "updated fail" + err });
-    });
+  if (await isUserAgeValid(user.birth)) {
+    userInfo = Object.values(user);
+    pool
+      .query(
+        "UPDATE users" +
+          " SET name = ?, type = ?, birth = ?, address = ?, email = ?, updatedAt = ?" +
+          " where userID = ?",
+        userInfo
+      )
+      .then((response) => {
+        if (response[0].affectedRows == 0) {
+          res.json({ message: "item not found" });
+        } else {
+          res.json({ message: "updated successfully" });
+        }
+      })
+      .catch((err) => {
+        res.json({ message: "updated fail" + err });
+      });
+  } else {
+    res.json({ message: "User's age not supported!" });
+  }
 };
 
 const remove = async (req, res) => {

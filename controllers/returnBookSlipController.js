@@ -1,6 +1,7 @@
 const pool = require("../utils/dbHandler");
 
 const ReturnBookSlip = require("../models/returnBookSlipSchema");
+const LibraryRules = require("../utils/libraryRules");
 
 const FINE_PER_DATE = 1000;
 
@@ -54,11 +55,12 @@ const processTransaction = async (res, userID, bookList) => {
   );
 
   for (i in bookInfo) {
-    let borrowedDays = caculateNumberOfDay(
+    let borrowedDays = caculateDifferentDays(
       bookInfo[i]["borrowedDate"],
       new Date()
     );
-    let passDueDays = borrowedDays - bookInfo[i]["maximumLendDay"];
+    let rules = LibraryRules.getLibraryRules();
+    let passDueDays = borrowedDays - (await rules).MAXIMUM_LEND_DAY;
     if (passDueDays < 0) passDueDays = 0;
     let insertedRow = {
       no: i,
@@ -71,11 +73,11 @@ const processTransaction = async (res, userID, bookList) => {
     totalFineThisSlip += insertedRow.fine;
   }
   totalDebt += totalFineThisSlip;
-  let test = {
-    ...returnSlip,
-    totalFineThisSlip,
-    totalDebt,
-  };
+  // let test = {
+  //   ...returnSlip,
+  //   totalFineThisSlip,
+  //   totalDebt,
+  // };
 
   returnSlip = ReturnBookSlip({
     ...returnSlip,
@@ -100,7 +102,7 @@ const processTransaction = async (res, userID, bookList) => {
   );
 };
 
-const caculateNumberOfDay = (date1, date2) => {
+const caculateDifferentDays = (date1, date2) => {
   const diffTime = Math.abs(date2 - date1);
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays;

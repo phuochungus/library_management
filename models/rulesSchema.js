@@ -18,7 +18,7 @@ const libraryRulesSchema = new Schema({
     type: Number,
     require: true,
   },
-  MAXIMUM_BOOK_BORROW: {
+  MAX_NUMBER_OF_BOOK_ALLOWED_TO_BORROW: {
     type: Number,
     require: true,
   },

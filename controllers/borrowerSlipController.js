@@ -35,11 +35,9 @@ const borrowRequestIsValid = async (userID, bookList, responseMessage) => {
       isFollowingBookAvailable(bookList, responseMessage),
     ])
       .then((response) => {
-        console.log(response);
         flag = true;
       })
       .catch((err) => {
-        console.log(err);
         flag = false;
       });
   } else {
@@ -74,9 +72,10 @@ const isNotReachBooksLimit = async (userID, bookList, responseMessage) => {
     responseMessage.detail = difference;
     throw responseMessage;
   }
+  let rules = await LibraryRules.getLibraryRules();
   if (
     currentNumberOfBookKeepByUser + availableBooks.length >
-    MAX_NUMBER_OF_BOOK_ALLOWED
+    rules.MAX_NUMBER_OF_BOOK_ALLOWED_TO_BORROW
   ) {
     responseMessage.message =
       "Reach book limit allowed to lend, return some books to borrow new ones";
@@ -87,7 +86,7 @@ const isNotReachBooksLimit = async (userID, bookList, responseMessage) => {
 
 const isUserAccountValid = async (userInfo, responseMessage) => {
   if (
-    (await isUserAccountStilValidNow(userInfo.createdAt)) ||
+    (await isUserAccountStilValidNow(userInfo.createdAt, userInfo.renewDays)) ||
     (await isUserAgeValid(userInfo.birth))
   ) {
     return true;
@@ -97,15 +96,17 @@ const isUserAccountValid = async (userInfo, responseMessage) => {
   }
 };
 
-const isUserAccountStilValidNow = async (createdDay) => {
+const isUserAccountStilValidNow = async (createdDay, renewDays) => {
   // let createdDay = await pool.query(
   //   'SELECT createdAt FROM users WHERE userID = ? AND isDeleted = "NO"',
   //   [userID]
   // );
   // createdDay = createdDay[0][0]["createdAt"];
   let rules = await LibraryRules.getLibraryRules();
+  console.log("renewDays: " + renewDays);
   if (
-    createdDay.addDays(rules.VALID_PERIOD_BY_DAY_OF_USER_ACCOUNT) >= new Date()
+    createdDay.addDays(rules.VALID_PERIOD_BY_DAY_OF_USER_ACCOUNT + renewDays) >=
+    new Date()
   ) {
     return true;
   } else {
@@ -120,7 +121,7 @@ Date.prototype.addDays = function (days) {
 };
 
 const isUserAgeValid = async (birth) => {
-  let age = new Date().getFullYear - birth.getFullYear;
+  let age = new Date().getFullYear() - new Date(birth).getFullYear();
   let rules = await LibraryRules.getLibraryRules();
   if (rules.MINIMUM_AGE <= age && age <= rules.MAXIMUM_AGE) {
     return true;

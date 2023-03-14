@@ -11,7 +11,9 @@ const borrowerSlipRoute = require("./routes/borrowerSlipRoute");
 const returnBookSlipRoute = require("./routes/returnBookSlipRoute");
 const fineReceiptRoute = require("./routes/fineReceiptRoute");
 const reportRoute = require("./routes/reportRoute");
-const authentication = require("./middleware/authenticate");
+const rulesChangeRoute = require("./routes/rulesChangeRoute");
+const authenticationRoute = require("./routes/authenticationRoute");
+const authentication = require("./middleware/authentication");
 const LibraryRules = require("./utils/libraryRules");
 
 //MongoDB init
@@ -52,7 +54,7 @@ app.listen(PORT, () => {
   console.log("Server is running on port " + PORT);
 });
 
-LibraryRules.getLibraryRules();
+//LibraryRules.getLibraryRules();
 
 app.use("/api/genre", genreRoute);
 app.use("/api/user", userRoute);
@@ -62,3 +64,5 @@ app.use("/api/borrow/", borrowerSlipRoute);
 app.use("/api/return", returnBookSlipRoute);
 app.use("/api/fineReceipt", fineReceiptRoute);
 app.use("/api/report", reportRoute);
+app.use("/api/rules", rulesChangeRoute);
+app.use("/", authenticationRoute);
